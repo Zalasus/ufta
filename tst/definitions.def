@@ -1,0 +1,50 @@
+
+; this file is used to describe the possible states of the system memory. 
+;  definitions overlapping a previous one override it
+
+; select program address space
+;  since the 6502 only has one address space, this does nothing
+space prog
+
+; all lines follow the scheme:
+;  address(es) operation arguments
+;
+;  Ranges are defined as follows: [start, end]
+;  Lists of values or addresses: {value 1, value 2, ...}
+
+; initially all memory locations are assumed completely unknown and
+;  thus any jump or operation that depends on them must be evaluated
+;  for all 256 possible values. this can make disassembly rather
+;  memory and cpu intensive, but a few simplifications like the following statement 
+;  can improve disassembly time dramatically
+
+; assume all memory locations to be 0 initially
+;  this does not reflect the situation in most physical systems,
+;  so it should only be considered as an example how to specify states
+;  of a range of locations 
+[0x0, 0xFFFF] set 0
+
+
+
+; The following definitions specify an exemplary model of a i82c51 UART
+;  mapped to memory addresses 0xD000 and 0xD001
+
+; Data register. This can assume any state. Writing to it has no
+;  influence on this
+0xD000 ignorewrite
+0xD000 set *   ; * is equivalent to [0, 0xFF] in this instance
+0xD000 label uartData  ; this label will be used in disassembly instead of address
+
+
+; Status register. Assume no error flags are ever set.
+;  Again, writing won't change this register
+0xD001 ignorewrite
+0xD001 set 0b00000xxx  ; x can be used in binary constants to indicate unknown bits
+0xD001 label uartStatus
+
+
+
+; Memory locations can be poisoned, resulting in warnings if the disassembling
+;  program accesses them (for example, to indicate adjustments in the disassembly
+;  parameter might be necessary)
+[0xE000, 0xFFFF] poison
